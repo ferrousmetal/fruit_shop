@@ -6,5 +6,7 @@ urlpatterns = [
     path('user/',include("user.urls",namespace="user")),
     path('order/',include("order.urls",namespace="order")),
     path('cart/',include("cart.urls",namespace="cart")),
+    path('tinymce/',include("tinymce.urls")),
     path('',include("goods.urls",namespace="goods")),
+
 ]
