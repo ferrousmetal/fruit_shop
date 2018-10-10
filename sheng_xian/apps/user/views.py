@@ -1,4 +1,4 @@
-from .models import User
+from apps.user.models import *
 from django.shortcuts import render,redirect
 import re
 from django.urls import reverse

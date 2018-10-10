@@ -41,11 +41,13 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'tinymce',
-    'user',#用户模块
-    'cart',#购物车模块
-    'goods',#商品模块
-    'order',#订单模块
+    'apps.user',#用户模块
+    'apps.cart',#购物车模块
+    'apps.goods',#商品模块
+    'apps.order',#订单模块
 ]
+
+# APPEND_SLASH=False
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
