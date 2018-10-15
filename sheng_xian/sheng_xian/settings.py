@@ -147,6 +147,21 @@ EMAIL_PORT = 25
 # 发送邮件的邮箱
 EMAIL_HOST_USER = '825464572@qq.com'
 # 在邮箱中设置的客户端授权密码
-EMAIL_HOST_PASSWORD = 'smartli123'
+EMAIL_HOST_PASSWORD = 'htfiyketvaujbbhi'
 # 收件人看到的发件人
 EMAIL_FROM = '天天生鲜<825464572@qq.com>'
+
+# Django的缓存配置
+CACHES = {
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": "redis://192.168.2.110:6379/9",
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+        }
+    }
+}
+
+# 配置session存储
+SESSION_ENGINE = "django.contrib.sessions.backends.cache"
+SESSION_CACHE_ALIAS = "default"

@@ -7,7 +7,8 @@ from django.conf import settings
 from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 from itsdangerous import SignatureExpired
 from django.http import HttpResponse
-from django.core.mail import send_mail
+from celery_task.tasks import sender_register_active_email
+from django.contrib.auth import authenticate,login
 
 class RegisterView(View):
     """注册视图"""
@@ -45,12 +46,7 @@ class RegisterView(View):
         info={"confirm":user.id}#将用户信息存放在字典里
         secret=serializer.dumps(info)#加密用字典信息
         token=secret.decode(encoding='utf8')
-        subject="天天生鲜项目信息"
-        message=''
-        message1="<h1>%s,欢迎你成为天天生鲜会员</h1>请点击下面链接激活账户<br/><a href='http://127.0.0.1:8000/user/active/%s'>http://127.0.0.1:8000/user/active/%s</a>"%(username,token,token)
-        sender=settings.EMAIL_FROM
-        receiver=[email]
-        send_mail(subject,message,sender,recipient_list=receiver,html_message=message1)
+        sender_register_active_email.delay(email,username,token)#调用celery任务函数
         return redirect(reverse('goods:index'))
 
 class ActiveView(View):
@@ -71,5 +67,35 @@ class ActiveView(View):
 class LoginView(View):
     """登录视图"""
     def get(self,request):
-        return render(request,"login.html")
+        if "usrname" in request.COOKIES:
+            username=request.COOKIES.get("username")
+            checked="checked"
+        else:
+            username=''
+            checked=''
+        return render(request,"login.html", {"username":username,"checked":checked})
+    def post(self,request):
+        """验证登录信息"""
+        username=request.POST.get("username")
+        password=request.POST.get('pwd')
+        user = authenticate(username=username, password=password)  # django内置的用户认证，如果数据合法发挥一个User对象
+        first_get=User.objects.filter(username=username,password=password)
+        print(user)
+        print(first_get)
+        if not all([username,password]):
+            return render(request,"login.html",{"errmsg":"用户名或密码不能为空"})
+        if first_get is not None:#判断用户名或密码是否正确
+            if user is not None:#是否认证成功
+                login(request,user)#记录登录状态，保存session
+                response = redirect(reverse("goods:index"))
+                remember=request.POST.get("remember")
+                if remember == "on":
+                    response.set_cookie("username",username,max_age=7*24*3600)
+                else:
+                    return response
+            else:
+                return render(request, "login.html", {"errmsg": "用户还未激活请到邮箱验证"})
+        else:
+            return render(request,"login.html",{"errmsg":"用户名或密码错误"})
+
 
