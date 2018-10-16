@@ -98,4 +98,16 @@ class LoginView(View):
         else:
             return render(request,"login.html",{"errmsg":"用户名或密码错误"})
 
+class UserInfoView(View):
+    """用户信息类视图"""
+    def get(self,request):
+        return render(request,"user_center_info.html",{"page":"user"})
 
+class UserOrderView(View):
+    """用户订单类视图"""
+    def get(self,request):
+        return render(request,"user_center_info.html",{"page":"order"})
+class UseAaddressView(View):
+    """用户地址类视图"""
+    def get(self,request):
+        return render(request,"user_center_info.html",{"page":"address"})
