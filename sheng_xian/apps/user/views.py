@@ -10,6 +10,7 @@ from django.http import HttpResponse
 from celery_task.tasks import sender_register_active_email
 from django.contrib.auth import authenticate,login
 
+
 class RegisterView(View):
     """注册视图"""
     def get(self,request):
@@ -87,8 +88,11 @@ class LoginView(View):
         if first_get is not None:#判断用户名或密码是否正确
             if user is not None:#是否认证成功
                 login(request,user)#记录登录状态，保存session
-                response = redirect(reverse("goods:index"))
-                remember=request.POST.get("remember")
+                #在没有登陆的情况下，访问有些需要登录之后才能访问的页面会自动跳转到登录页面
+                # 这时候URL携带的是你之前的路径，在登录之后要返回原路径，我们可以这样做
+                next_url=request.GET.get("next" ,reverse("goods:index"))#要返回的URL，如果拿不到默认返回首页
+                response = redirect(next_url)
+                remember=request.POST.get("remember")#获取是否勾选记住密码按钮
                 if remember == "on":
                     response.set_cookie("username",username,max_age=7*24*3600)
                 else:
@@ -106,8 +110,8 @@ class UserInfoView(View):
 class UserOrderView(View):
     """用户订单类视图"""
     def get(self,request):
-        return render(request,"user_center_info.html",{"page":"order"})
-class UseAaddressView(View):
+        return render(request,"user_center_order.html",{"page":"order"})
+class UserAddressView(View):
     """用户地址类视图"""
     def get(self,request):
-        return render(request,"user_center_info.html",{"page":"address"})
+        return render(request,"user_center_site.html",{"page":"address"})
