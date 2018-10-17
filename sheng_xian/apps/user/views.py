@@ -8,8 +8,8 @@ from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
 from itsdangerous import SignatureExpired
 from django.http import HttpResponse
 from celery_task.tasks import sender_register_active_email
-from django.contrib.auth import authenticate,login
-
+from django.contrib.auth import authenticate,login,logout
+from utils.mixin import LoginRequiredMixin
 
 class RegisterView(View):
     """注册视图"""
@@ -102,16 +102,38 @@ class LoginView(View):
         else:
             return render(request,"login.html",{"errmsg":"用户名或密码错误"})
 
-class UserInfoView(View):
+class LogoutView(View):
+    """退出登录"""
+    def get(self,request):
+        logout(request)
+        return redirect(reverse('goods:index'))
+
+
+class UserInfoView(LoginRequiredMixin,View):
     """用户信息类视图"""
     def get(self,request):
         return render(request,"user_center_info.html",{"page":"user"})
 
-class UserOrderView(View):
+class UserOrderView(LoginRequiredMixin,View):
     """用户订单类视图"""
     def get(self,request):
         return render(request,"user_center_order.html",{"page":"order"})
-class UserAddressView(View):
+
+class UserAddressView(LoginRequiredMixin,View):
     """用户地址类视图"""
     def get(self,request):
         return render(request,"user_center_site.html",{"page":"address"})
+    def post(self,request):
+        """用户提交收货地址"""
+        #获取提交信息
+        receiver = request.POST.get("receiver")
+        address = request.POST.get('address')
+        zip_code = request.POST.get('zip_code')
+        phone = request.POST.get('phone')
+        #判断提交信息
+        if not all([receiver,address,phone]):
+            return render(request,"user_center_site.html",{"ermsg":"信息不完整"})
+        if not re.match(r'^(13\d|14[5|7]|15\d|166|17[3|6|7]|18\d)\d{8}$',phone):
+            return render(request,"user_center_site.html",{"ermsg":"电话号码格式不正确"})
+
+
