@@ -4,7 +4,7 @@ from django.core.mail import send_mail
 import time
 
 #传建一个celery的实例对象
-app=Celery('celery_task.tasks',broker="redis://192.168.2.110/8")
+app=Celery('celery_task.tasks',broker="redis://10.35.165.35/8")
 
 #定义celery任务函数
 @app.task

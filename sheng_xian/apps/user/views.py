@@ -1,4 +1,5 @@
 from apps.user.models import *
+from apps.goods.models import GoodsSKU
 from django.shortcuts import render,redirect
 import re
 from django.urls import reverse
@@ -10,6 +11,7 @@ from django.http import HttpResponse
 from celery_task.tasks import sender_register_active_email
 from django.contrib.auth import authenticate,login,logout
 from utils.mixin import LoginRequiredMixin
+from django_redis import get_redis_connection#导入第三方模块用来缓存浏览记录用你来缓存商品浏览记录
 
 class RegisterView(View):
     """注册视图"""
@@ -80,7 +82,7 @@ class LoginView(View):
         username=request.POST.get("username")
         password=request.POST.get('pwd')
         user = authenticate(username=username, password=password)  # django内置的用户认证，如果数据合法发挥一个User对象
-        first_get=User.objects.filter(username=username,password=password)
+        first_get=User.objects.filter(username=username)
         print(user)
         print(first_get)
         if not all([username,password]):
@@ -112,7 +114,21 @@ class LogoutView(View):
 class UserInfoView(LoginRequiredMixin,View):
     """用户信息类视图"""
     def get(self,request):
-        return render(request,"user_center_info.html",{"page":"user"})
+        user=request.user
+        address=Address.objects.get_default_address(user=user)
+        con = get_redis_connection('default')#redis连接对象,default为配置文件里面的缓存配置
+        history_key="hestory_%d"%user.id
+        #获取浏览记录的前五个商品
+        history_id=con.lrange(history_key,0,4)#我们用redis列表类型存储浏览记录缓存
+        sku_list=[]
+        for pro_id in history_id:
+            sku=GoodsSKU.objects.get(id=pro_id)
+            sku_list.append(sku)
+
+        content= {"page":"user","address":address,"sku_list":sku_list}
+
+
+        return render(request,"user_center_info.html",content)
 
 class UserOrderView(LoginRequiredMixin,View):
     """用户订单类视图"""
@@ -122,18 +138,47 @@ class UserOrderView(LoginRequiredMixin,View):
 class UserAddressView(LoginRequiredMixin,View):
     """用户地址类视图"""
     def get(self,request):
-        return render(request,"user_center_site.html",{"page":"address"})
+        """获取用户地址页面"""
+        user=request.user
+        # try:
+        #     address=Address.objects.get(user=user,is_default=True)
+        # except Address.DoesNotExist:
+        #     address=None
+        # 引入自定义模型管理器类的方法,解决多个类重复复使用同一段代码
+        address=Address.objects.get_default_address(user=user)
+        return render(request,"user_center_site.html",{"page":"address","address":address})
     def post(self,request):
         """用户提交收货地址"""
         #获取提交信息
         receiver = request.POST.get("receiver")
-        address = request.POST.get('address')
+        addr = request.POST.get('address')
         zip_code = request.POST.get('zip_code')
         phone = request.POST.get('phone')
         #判断提交信息
-        if not all([receiver,address,phone]):
+        if not all([receiver,addr,phone]):
             return render(request,"user_center_site.html",{"ermsg":"信息不完整"})
-        if not re.match(r'^(13\d|14[5|7]|15\d|166|17[3|6|7]|18\d)\d{8}$',phone):
+        if not re.match(r'^0\d{2,3}\d{7,8}$|^1[358]\d{9}$|^147\d{8}',phone):
             return render(request,"user_center_site.html",{"ermsg":"电话号码格式不正确"})
+        user=request.user
+        # try:
+        #     address=Address.objects.get(user=user,is_default=True)
+        # except Address.DoesNotExist:
+        #     address=Nonee
+        #引入自定义模型管理器类的方法,解决多个类重复复使用同一段代码
+        address = Address.objects.get_default_address(user=user)
+        if address:
+            is_default=False
+        else:
+            is_default=True
+        Address.objects.create(
+                               user=user,
+                               receiver=receiver,
+                               addr=addr,
+                               zip_code=zip_code,
+                               phone=phone,
+                               is_default=is_default
+                               )
+        return redirect(reverse('user:address'))
+
 
 

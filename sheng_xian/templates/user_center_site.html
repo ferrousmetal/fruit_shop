@@ -5,7 +5,11 @@
 				<div class="site_con">
 					<dl>
 						<dt>当前地址：</dt>
-						<dd>北京市 海淀区 东北旺西路8号中关村软件园 （李思 收） 182****7528</dd>
+                        {% if address %}
+						<dd>{{ address.addr }} （{{ address.receiver }}） {{ address.phone }}</dd>
+                        {% else %}
+                        <dd>默认地址为空</dd>
+                        {% endif %}
 					</dl>
 				</div>
 				<h3 class="common_title2">编辑地址</h3>

@@ -4,12 +4,13 @@ from django.urls import path
 from django.contrib.auth.decorators import login_required
 app_name="user"
 
-from apps.user.views import RegisterView,ActiveView,LoginView,UserAddressView,UserInfoView,UserOrderView
+from apps.user.views import RegisterView,LogoutView,ActiveView,LoginView,UserAddressView,UserInfoView,UserOrderView
 
 urlpatterns = [
     path('register/',RegisterView.as_view(),name="register"),
     path('active/<token>/',ActiveView.as_view(),name="active"),
     path('login/',LoginView.as_view(),name="login"),
+    path('logout/',LogoutView.as_view(),name="logout"),
     path('',UserInfoView.as_view(),name="user"),
     path('order/',UserOrderView.as_view(),name="order"),
     path('address/',UserAddressView.as_view(),name="address"),

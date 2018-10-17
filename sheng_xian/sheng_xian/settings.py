@@ -155,7 +155,7 @@ EMAIL_FROM = '天天生鲜<825464572@qq.com>'
 CACHES = {
     "default": {
         "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": "redis://192.168.2.110:6379/9",
+        "LOCATION": "redis://10.35.165.35:6379/9",
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
         }
