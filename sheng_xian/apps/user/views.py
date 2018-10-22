@@ -82,14 +82,15 @@ class LoginView(View):
         username=request.POST.get("username")
         password=request.POST.get('pwd')
         user = authenticate(username=username, password=password)  # django内置的用户认证，如果数据合法发挥一个User对象
-        first_get=User.objects.filter(username=username)
         print(user)
-        print(first_get)
+
         if not all([username,password]):
             return render(request,"login.html",{"errmsg":"用户名或密码不能为空"})
-        if first_get is not None:#判断用户名或密码是否正确
-            if user is not None:#是否认证成功
-                login(request,user)#记录登录状态，保存session
+
+        if user is not None:#是否认证成功
+            if user.is_active==1:
+                login(request,user)
+                #记录登录状态，保存session
                 #在没有登陆的情况下，访问有些需要登录之后才能访问的页面会自动跳转到登录页面
                 # 这时候URL携带的是你之前的路径，在登录之后要返回原路径，我们可以这样做
                 next_url=request.GET.get("next" ,reverse("goods:index"))#要返回的URL，如果拿不到默认返回首页

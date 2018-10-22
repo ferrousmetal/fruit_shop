@@ -155,7 +155,7 @@ EMAIL_FROM = '天天生鲜<825464572@qq.com>'
 CACHES = {
     "default": {
         "BACKEND": "django_redis.cache.RedisCache",
-        "LOCATION": "redis://10.35.165.35:6379/9",
+        "LOCATION": "redis://192.168.2.106:6379/9",
         "OPTIONS": {
             "CLIENT_CLASS": "django_redis.client.DefaultClient",
         }
@@ -167,3 +167,7 @@ SESSION_ENGINE = "django.contrib.sessions.backends.cache"
 SESSION_CACHE_ALIAS = "default"
 
 LOGIN_URL='/user/login/'
+
+DEFAULT_FILE_STORAGE="utils.fdfs.storage.FDFSstorage"
+FDFS_CLIENT_CONF='./utils/fdfs/client.conf'
+FDFS_URL='http://192.168.2.111:8888/'

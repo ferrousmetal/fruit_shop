@@ -19,7 +19,7 @@
 			<div class="fr">
 				{% if request.user.is_authenticated %}
 				<div class="login_btn fl">
-                    欢迎您：<em>{{ user.usernsme }}</em>
+                    欢迎您：<em>{{ user.username }}</em>
                     <span>|</span>
 					<a href="{% url "user:logout" %}">退出</a>
 				</div>
